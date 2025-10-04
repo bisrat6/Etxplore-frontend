@@ -1,17 +1,23 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import Navigation from '@/components/Navigation';
-import Footer from '@/components/Footer';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { motion } from 'framer-motion';
-import { 
-  Users, 
-  Search, 
+import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { motion } from "framer-motion";
+import {
+  Users,
+  Search,
   Filter,
   Loader2,
   AlertCircle,
@@ -20,41 +26,41 @@ import {
   X,
   UserCheck,
   Mail,
-  Calendar
-} from 'lucide-react';
-import { usersAPI } from '@/lib/api';
-import { useToast } from '@/hooks/use-toast';
+  Calendar,
+} from "lucide-react";
+import { usersAPI } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
 
 const UserManagement = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  
+
   // State management
   const [users, setUsers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [roleFilter, setRoleFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
   const [editingUser, setEditingUser] = useState<any>(null);
   const [submitting, setSubmitting] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    role: 'user',
-    active: true
+    name: "",
+    email: "",
+    role: "user",
+    active: true,
   });
 
   useEffect(() => {
     // Redirect if not admin
-    if (user?.role !== 'admin') {
-      navigate('/');
+    if (user?.role !== "admin") {
+      navigate("/");
       toast({
-        title: 'Access Denied',
-        description: 'Admin access required',
-        variant: 'destructive',
+        title: "Access Denied",
+        description: "Admin access required",
+        variant: "destructive",
       });
       return;
     }
@@ -68,12 +74,12 @@ const UserManagement = () => {
       const response = await usersAPI.getAll();
       setUsers(response.data.data);
     } catch (err: any) {
-      console.error('Failed to fetch users:', err);
-      setError('Failed to load users');
+      console.error("Failed to fetch users:", err);
+      setError("Failed to load users");
       toast({
-        title: 'Error',
-        description: 'Failed to load users',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to load users",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -83,49 +89,50 @@ const UserManagement = () => {
   const handleEdit = (userData: any) => {
     setEditingUser(userData);
     setFormData({
-      name: userData.name || '',
-      email: userData.email || '',
-      role: userData.role || 'user',
-      active: userData.active !== false
+      name: userData.name || "",
+      email: userData.email || "",
+      role: userData.role || "user",
+      active: userData.active !== false,
     });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name || !formData.email) {
       toast({
-        title: 'Missing fields',
-        description: 'Please fill in required fields',
-        variant: 'destructive',
+        title: "Missing fields",
+        description: "Please fill in required fields",
+        variant: "destructive",
       });
       return;
     }
 
     setSubmitting(true);
     try {
-      await usersAPI.update(editingUser.id, formData);
+      await usersAPI.update(editingUser._id ?? editingUser.id, formData);
       toast({
-        title: 'Success',
-        description: 'User updated successfully',
+        title: "Success",
+        description: "User updated successfully",
       });
       setEditingUser(null);
       fetchUsers();
     } catch (err: any) {
       toast({
-        title: 'Error',
-        description: err.response?.data?.message || 'Failed to update user',
-        variant: 'destructive',
+        title: "Error",
+        description: err.response?.data?.message || "Failed to update user",
+        variant: "destructive",
       });
     } finally {
       setSubmitting(false);
     }
   };
 
-  const filteredUsers = users.filter(userData => {
-    const matchesSearch = userData.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         userData.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = roleFilter === 'all' || userData.role === roleFilter;
+  const filteredUsers = users.filter((userData) => {
+    const matchesSearch =
+      userData.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      userData.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesRole = roleFilter === "all" || userData.role === roleFilter;
     return matchesSearch && matchesRole;
   });
 
@@ -166,13 +173,13 @@ const UserManagement = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navigation />
-      
+
       <main className="flex-1 pt-16">
         {/* Header */}
         <section className="relative bg-gradient-to-br from-primary via-primary-light to-earth py-24 text-primary-foreground">
           <div className="absolute inset-0 pattern-ethiopian opacity-10" />
           <div className="container mx-auto px-4 relative z-10">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
@@ -239,7 +246,9 @@ const UserManagement = () => {
                           <Input
                             id="name"
                             value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            onChange={(e) =>
+                              setFormData({ ...formData, name: e.target.value })
+                            }
                             required
                           />
                         </div>
@@ -249,29 +258,46 @@ const UserManagement = () => {
                             id="email"
                             type="email"
                             value={formData.email}
-                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                email: e.target.value,
+                              })
+                            }
                             required
                           />
                         </div>
                         <div>
                           <Label htmlFor="role">Role</Label>
-                          <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })}>
+                          <Select
+                            value={formData.role}
+                            onValueChange={(value) =>
+                              setFormData({ ...formData, role: value })
+                            }
+                          >
                             <SelectTrigger>
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="user">User</SelectItem>
                               <SelectItem value="guide">Guide</SelectItem>
-                              <SelectItem value="lead-guide">Lead Guide</SelectItem>
+                              <SelectItem value="lead-guide">
+                                Lead Guide
+                              </SelectItem>
                               <SelectItem value="admin">Admin</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                         <div>
                           <Label htmlFor="active">Status</Label>
-                          <Select 
-                            value={formData.active ? 'active' : 'inactive'} 
-                            onValueChange={(value) => setFormData({ ...formData, active: value === 'active' })}
+                          <Select
+                            value={formData.active ? "active" : "inactive"}
+                            onValueChange={(value) =>
+                              setFormData({
+                                ...formData,
+                                active: value === "active",
+                              })
+                            }
                           >
                             <SelectTrigger>
                               <SelectValue />
@@ -285,7 +311,11 @@ const UserManagement = () => {
                       </div>
 
                       <div className="flex gap-4">
-                        <Button type="submit" disabled={submitting} variant="hero">
+                        <Button
+                          type="submit"
+                          disabled={submitting}
+                          variant="hero"
+                        >
                           {submitting ? (
                             <>
                               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -298,7 +328,11 @@ const UserManagement = () => {
                             </>
                           )}
                         </Button>
-                        <Button type="button" variant="outline" onClick={() => setEditingUser(null)}>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setEditingUser(null)}
+                        >
                           <X className="w-4 h-4 mr-2" />
                           Cancel
                         </Button>
@@ -313,7 +347,7 @@ const UserManagement = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredUsers.map((userData, index) => (
                 <motion.div
-                  key={userData.id}
+                  key={userData._id ?? userData.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
@@ -343,25 +377,34 @@ const UserManagement = () => {
                           <Edit className="w-4 h-4" />
                         </Button>
                       </div>
-                      
+
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Role:</span>
-                          <span className={`font-semibold capitalize ${
-                            userData.role === 'admin' ? 'text-red-600' :
-                            userData.role === 'lead-guide' ? 'text-blue-600' :
-                            userData.role === 'guide' ? 'text-green-600' :
-                            'text-muted-foreground'
-                          }`}>
+                          <span
+                            className={`font-semibold capitalize ${
+                              userData.role === "admin"
+                                ? "text-red-600"
+                                : userData.role === "lead-guide"
+                                ? "text-blue-600"
+                                : userData.role === "guide"
+                                ? "text-green-600"
+                                : "text-muted-foreground"
+                            }`}
+                          >
                             {userData.role}
                           </span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Status:</span>
-                          <span className={`font-semibold ${
-                            userData.active !== false ? 'text-green-600' : 'text-red-600'
-                          }`}>
-                            {userData.active !== false ? 'Active' : 'Inactive'}
+                          <span
+                            className={`font-semibold ${
+                              userData.active !== false
+                                ? "text-green-600"
+                                : "text-red-600"
+                            }`}
+                          >
+                            {userData.active !== false ? "Active" : "Inactive"}
                           </span>
                         </div>
                       </div>
@@ -374,9 +417,9 @@ const UserManagement = () => {
             {filteredUsers.length === 0 && (
               <div className="text-center py-16">
                 <p className="text-xl text-muted-foreground">
-                  {searchTerm || roleFilter !== 'all' 
-                    ? 'No users match your filters' 
-                    : 'No users available'}
+                  {searchTerm || roleFilter !== "all"
+                    ? "No users match your filters"
+                    : "No users available"}
                 </p>
               </div>
             )}

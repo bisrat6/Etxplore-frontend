@@ -7,7 +7,8 @@ import { motion } from "framer-motion";
 
 interface TourCardProps {
   tour: {
-    id: number;
+    _id?: string;
+    id?: string | number;
     name: string;
     duration: number;
     maxGroupSize: number;
@@ -24,7 +25,7 @@ const TourCard = ({ tour }: TourCardProps) => {
   const difficultyColors = {
     easy: "bg-primary text-primary-foreground",
     medium: "bg-secondary text-secondary-foreground",
-    difficult: "bg-accent text-accent-foreground"
+    difficult: "bg-accent text-accent-foreground",
   };
 
   return (
@@ -38,59 +39,73 @@ const TourCard = ({ tour }: TourCardProps) => {
         {/* Tour Image */}
         <div className="relative h-56 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-primary/80 z-10" />
-          <img 
-            src={`https://placehold.co/600x400/2d5a3d/ffd700?text=${encodeURIComponent(tour.name)}`}
+          <img
+            src={`https://placehold.co/600x400/2d5a3d/ffd700?text=${encodeURIComponent(
+              tour.name
+            )}`}
             alt={tour.name}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
           />
-          <Badge className={`absolute top-4 right-4 z-20 ${difficultyColors[tour.difficulty as keyof typeof difficultyColors]}`}>
+          <Badge
+            className={`absolute top-4 right-4 z-20 ${
+              difficultyColors[tour.difficulty as keyof typeof difficultyColors]
+            }`}
+          >
             {tour.difficulty}
           </Badge>
         </div>
 
-      <CardContent className="p-6">
-        {/* Tour Header */}
-        <div className="mb-4">
-          <h3 className="font-display text-2xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
-            {tour.name}
-          </h3>
-          <p className="text-muted-foreground text-sm line-clamp-2">{tour.summary}</p>
-        </div>
+        <CardContent className="p-6">
+          {/* Tour Header */}
+          <div className="mb-4">
+            <h3 className="font-display text-2xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
+              {tour.name}
+            </h3>
+            <p className="text-muted-foreground text-sm line-clamp-2">
+              {tour.summary}
+            </p>
+          </div>
 
-        {/* Tour Details Grid */}
-        <div className="grid grid-cols-2 gap-3 mb-4 pb-4 border-b border-border">
-          <div className="flex items-center gap-2 text-sm">
-            <Calendar className="w-4 h-4 text-primary" />
-            <span className="text-muted-foreground">{tour.duration} days</span>
+          {/* Tour Details Grid */}
+          <div className="grid grid-cols-2 gap-3 mb-4 pb-4 border-b border-border">
+            <div className="flex items-center gap-2 text-sm">
+              <Calendar className="w-4 h-4 text-primary" />
+              <span className="text-muted-foreground">
+                {tour.duration} days
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <Users className="w-4 h-4 text-primary" />
+              <span className="text-muted-foreground">
+                Up to {tour.maxGroupSize}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <Star className="w-4 h-4 text-secondary fill-secondary" />
+              <span className="text-muted-foreground">
+                {tour.ratingsAverage} ({tour.ratingsQuantity})
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <TrendingUp className="w-4 h-4 text-primary" />
+              <span className="text-muted-foreground capitalize">
+                {tour.difficulty}
+              </span>
+            </div>
           </div>
-          <div className="flex items-center gap-2 text-sm">
-            <Users className="w-4 h-4 text-primary" />
-            <span className="text-muted-foreground">Up to {tour.maxGroupSize}</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            <Star className="w-4 h-4 text-secondary fill-secondary" />
-            <span className="text-muted-foreground">{tour.ratingsAverage} ({tour.ratingsQuantity})</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            <TrendingUp className="w-4 h-4 text-primary" />
-            <span className="text-muted-foreground capitalize">{tour.difficulty}</span>
-          </div>
-        </div>
 
-        {/* Price and CTA */}
-        <div className="flex items-center justify-between">
-          <div>
-            <span className="text-sm text-muted-foreground">From</span>
-            <p className="text-3xl font-bold text-primary">${tour.price}</p>
+          {/* Price and CTA */}
+          <div className="flex items-center justify-between">
+            <div>
+              <span className="text-sm text-muted-foreground">From</span>
+              <p className="text-3xl font-bold text-primary">${tour.price}</p>
+            </div>
+            <Button asChild variant="adventure" size="default">
+              <Link to={`/tours/${tour._id ?? tour.id}`}>Details</Link>
+            </Button>
           </div>
-          <Button asChild variant="adventure" size="default">
-            <Link to={`/tours/${tour.id}`}>
-              Details
-            </Link>
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
     </motion.div>
   );
 };

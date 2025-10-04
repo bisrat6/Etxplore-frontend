@@ -1,5 +1,11 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { authAPI } from '@/lib/api';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import { authAPI } from "@/lib/api";
 
 interface User {
   id: string;
@@ -12,7 +18,13 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   login: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string, passwordConfirm: string) => Promise<void>;
+  signup: (
+    name: string,
+    email: string,
+    password: string,
+    passwordConfirm: string
+  ) => Promise<void>;
+  updateUser: (newUser: User) => void;
   logout: () => void;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -27,9 +39,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     // Check for stored auth on mount
-    const storedToken = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
-    
+    const storedToken = localStorage.getItem("token");
+    const storedUser = localStorage.getItem("user");
+
     if (storedToken && storedUser) {
       setToken(storedToken);
       setUser(JSON.parse(storedUser));
@@ -41,29 +53,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const response = await authAPI.login(email, password);
       const { token: authToken, data } = response;
-      
+
       setToken(authToken);
       setUser(data.user);
-      
-      localStorage.setItem('token', authToken);
-      localStorage.setItem('user', JSON.stringify(data.user));
+
+      localStorage.setItem("token", authToken);
+      localStorage.setItem("user", JSON.stringify(data.user));
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Login failed');
+      throw new Error(error.response?.data?.message || "Login failed");
     }
   };
 
-  const signup = async (name: string, email: string, password: string, passwordConfirm: string) => {
+  const signup = async (
+    name: string,
+    email: string,
+    password: string,
+    passwordConfirm: string
+  ) => {
     try {
-      const response = await authAPI.signup(name, email, password, passwordConfirm);
-      const { token: authToken, data } = response;
-      
-      setToken(authToken);
-      setUser(data.user);
-      
-      localStorage.setItem('token', authToken);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      // Signup endpoint will create user and send verification email.
+      // Do not auto-login; frontend will wait for verification.
+      await authAPI.signup(name, email, password, passwordConfirm);
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Signup failed');
+      throw new Error(error.response?.data?.message || "Signup failed");
+    }
+  };
+
+  const updateUser = (newUser: User) => {
+    setUser(newUser);
+    try {
+      localStorage.setItem("user", JSON.stringify(newUser));
+    } catch (err) {
+      // ignore
     }
   };
 
@@ -80,6 +101,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         token,
         login,
         signup,
+        updateUser,
         logout,
         isAuthenticated: !!token,
         isLoading,
@@ -93,7 +115,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };

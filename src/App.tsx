@@ -11,6 +11,7 @@ import TourDetail from "./pages/TourDetail";
 import About from "./pages/About";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import VerifyEmail from "./pages/VerifyEmail";
 import Profile from "./pages/Profile";
 import MyBookings from "./pages/MyBookings";
 import MyReviews from "./pages/MyReviews";
@@ -40,63 +41,64 @@ const App = () => (
             <Route path="/contact" element={<Contact />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/verify-email/:token" element={<VerifyEmail />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password/:token" element={<ResetPassword />} />
-            <Route 
-              path="/profile" 
+            <Route
+              path="/profile"
               element={
                 <ProtectedRoute>
                   <Profile />
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/update-password" 
+            <Route
+              path="/update-password"
               element={
                 <ProtectedRoute>
                   <UpdatePassword />
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/admin/dashboard" 
+            <Route
+              path="/admin/dashboard"
               element={
                 <ProtectedRoute>
                   <AdminDashboard />
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/admin/tours" 
+            <Route
+              path="/admin/tours"
               element={
                 <ProtectedRoute>
                   <TourManagement />
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/admin/users" 
+            <Route
+              path="/admin/users"
               element={
                 <ProtectedRoute>
                   <UserManagement />
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/my-bookings" 
+            <Route
+              path="/my-bookings"
               element={
                 <ProtectedRoute>
                   <MyBookings />
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/my-reviews" 
+            <Route
+              path="/my-reviews"
               element={
                 <ProtectedRoute>
                   <MyReviews />
                 </ProtectedRoute>
-              } 
+              }
             />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
