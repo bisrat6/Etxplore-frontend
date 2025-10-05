@@ -276,12 +276,18 @@ export const bookingsAPI = {
     throw new Error("Booking functionality not yet implemented in backend");
   },
   create: async (tourId: string) => {
-    // Placeholder - would need backend booking endpoints
-    throw new Error("Booking functionality not yet implemented in backend");
+    // Calls backend to create a checkout session (Chapa)
+    // backend route: GET /api/v1/bookings/checkout-session/:tourId
+    const response = await api.get(`/bookings/checkout-session/${tourId}`);
+    return response.data;
+  },
+  verify: async (txRef: string) => {
+    const response = await api.get(`/bookings/verify/${txRef}`);
+    return response.data;
   },
   getMyBookings: async () => {
-    // Placeholder - would need backend booking endpoints
-    throw new Error("Booking functionality not yet implemented in backend");
+    const response = await api.get("/bookings/me");
+    return response.data;
   },
 };
 

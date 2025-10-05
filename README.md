@@ -1,18 +1,14 @@
-# Welcome to your Lovable project
+# Welcome to your Etxplore project
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/0ec734de-e89b-4144-9bb7-982a3f9507a3
+**Project**: Etxplore local frontend
 
 ## How can I edit this code?
 
 There are several ways of editing your application.
 
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/0ec734de-e89b-4144-9bb7-982a3f9507a3) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
+Edit locally with your preferred IDE (VS Code, WebStorm, etc.) or use GitHub.
 
 **Use your preferred IDE**
 
@@ -62,12 +58,15 @@ This project is built with:
 
 ## How can I deploy this project?
 
-Simply open [Lovable](https://lovable.dev/projects/0ec734de-e89b-4144-9bb7-982a3f9507a3) and click on Share -> Publish.
+Build the site and deploy using your preferred hosting provider (Vercel, Netlify, etc.).
 
-## Can I connect a custom domain to my Lovable project?
+Example (local build):
 
-Yes, you can!
+```sh
+npm run build
+# then serve the `dist/` folder on your host
+```
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## Can I connect a custom domain to my deployment?
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Yes — follow your hosting provider's instructions to connect a custom domain.

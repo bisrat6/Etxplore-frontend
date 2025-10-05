@@ -16,8 +16,10 @@ import {
   ArrowLeft,
   Loader2,
   MessageSquare,
+  Check,
 } from "lucide-react";
 import { toursAPI, reviewsAPI } from "@/lib/api";
+import { bookingsAPI } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -25,7 +27,10 @@ const TourDetail = () => {
   const { id } = useParams();
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const [tour, setTour] = useState<Record<string, unknown> | null>(null);
+  const [tour, setTour] = useState<any | null>(null);
+  const [selectedStartDate, setSelectedStartDate] = useState<string | null>(
+    null
+  );
   const [reviews, setReviews] = useState<Array<Record<string, unknown>>>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [reviewsLoading, setReviewsLoading] = useState(false);
@@ -36,6 +41,7 @@ const TourDetail = () => {
   const [newRating, setNewRating] = useState(0);
   const [submittingReview, setSubmittingReview] = useState(false);
   const [hasUserReviewed, setHasUserReviewed] = useState(false);
+  const [hasBooked, setHasBooked] = useState<boolean>(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -44,7 +50,18 @@ const TourDetail = () => {
         setIsLoading(true);
         try {
           const response = await toursAPI.getById(id);
-          setTour(response.data.data);
+          const t = response.data.data;
+          setTour(t);
+          // initialize selected start date to next upcoming or first date
+          const dates: string[] = (t.startDates || []).map((d: any) =>
+            new Date(d).toISOString()
+          );
+          const now = Date.now();
+          const next =
+            dates.find((ds) => new Date(ds).getTime() > now) ||
+            dates[0] ||
+            null;
+          setSelectedStartDate(next);
         } catch (err: unknown) {
           console.error("Failed to fetch tour:", err);
           toast({
@@ -60,7 +77,36 @@ const TourDetail = () => {
     };
 
     fetchTour();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, toast]);
+
+  // Check if current user has a booking for this tour
+  useEffect(() => {
+    const checkBooking = async () => {
+      if (!isAuthenticated || !tour) return setHasBooked(false);
+      try {
+        const resp = await bookingsAPI.getMyBookings();
+        // normalize response to array of bookings
+        let bookingsList: any[] = [];
+        if (Array.isArray(resp)) bookingsList = resp;
+        else if (Array.isArray((resp as any).data))
+          bookingsList = (resp as any).data;
+        else if (Array.isArray((resp as any).data?.data))
+          bookingsList = (resp as any).data.data;
+
+        const tourId = tour._id ?? tour.id ?? tour;
+        const found = bookingsList.find((b: any) => {
+          const bTourId = b.tour?._id ?? b.tour?.id ?? b.tour;
+          return String(bTourId) === String(tourId);
+        });
+        setHasBooked(!!found);
+      } catch (err) {
+        // ignore silently
+        setHasBooked(false);
+      }
+    };
+    checkBooking();
+  }, [tour, isAuthenticated, user]);
 
   const fetchReviews = async () => {
     if (!id) return;
@@ -202,30 +248,46 @@ const TourDetail = () => {
       <Navigation />
 
       <main className="flex-1 pt-16">
-        {/* Hero Image */}
+        {/* Hero Image (background only) */}
         <section className="relative h-[60vh] overflow-hidden">
-          <img
-            src={`https://placehold.co/1200x800/2d5a3d/ffd700?text=${encodeURIComponent(
-              tour.name
-            )}`}
-            alt={tour.name}
-            className="w-full h-full object-cover"
+          <div
+            className="w-full h-full bg-center bg-cover"
+            style={{
+              backgroundImage: `url(${
+                tour.imageCover ||
+                `https://placehold.co/1200x800/2d5a3d/ffd700?text=${encodeURIComponent(
+                  tour.name
+                )}`
+              })`,
+            }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
+          <div className="absolute inset-0">
+            {/* subtle dark scrim for contrast */}
+            <div className="absolute inset-0 bg-black/25" />
+            {/* site color gradient for branding: green -> yellow */}
+            <div className="absolute inset-0 bg-gradient-to-t from-emerald-400/30 via-amber-300/20 to-transparent" />
+            {/* gentle backdrop blend to tie into site background */}
+            <div className="absolute inset-0 bg-gradient-to-r from-background/60 to-transparent mix-blend-multiply" />
+          </div>
 
-          <div className="absolute bottom-0 left-0 right-0 container mx-auto px-4 pb-12">
+          <div className="absolute top-4 left-4">
             <Button
               asChild
               variant="outline"
               size="sm"
-              className="mb-6 bg-background/80 backdrop-blur-sm"
+              className="bg-background/60 backdrop-blur-sm"
             >
               <Link to="/tours">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Tours
               </Link>
             </Button>
+          </div>
+        </section>
 
+        {/* Title & Quick Info (moved below the image) */}
+        <section className="container mx-auto px-4 -mt-12 z-10">
+          <div className="bg-background/90 backdrop-blur-sm rounded-lg p-6 shadow-md">
             <div className="flex flex-wrap items-center gap-3 mb-4">
               <Badge
                 className={
@@ -251,7 +313,7 @@ const TourDetail = () => {
               </div>
             </div>
 
-            <h1 className="font-display text-4xl md:text-6xl font-bold text-foreground mb-4">
+            <h1 className="font-display text-3xl md:text-5xl font-bold text-foreground mb-0">
               {tour.name}
             </h1>
           </div>
@@ -292,6 +354,37 @@ const TourDetail = () => {
                           <p className="text-muted-foreground">
                             {tour.duration} days
                           </p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <Clock className="w-6 h-6 text-primary mt-1" />
+                        <div>
+                          <p className="font-semibold text-foreground mb-1">
+                            Start Dates
+                          </p>
+                          {Array.isArray(tour.startDates) &&
+                          tour.startDates.length > 0 ? (
+                            <select
+                              value={selectedStartDate ?? ""}
+                              onChange={(e) =>
+                                setSelectedStartDate(e.target.value)
+                              }
+                              className="px-2 py-1 border"
+                            >
+                              {tour.startDates.map((d: string, idx: number) => (
+                                <option
+                                  key={idx}
+                                  value={new Date(d).toISOString()}
+                                >
+                                  {new Date(d).toLocaleDateString()}
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            <p className="text-muted-foreground">
+                              No start dates
+                            </p>
+                          )}
                         </div>
                       </div>
                       <div className="flex items-start gap-3">
@@ -526,32 +619,150 @@ const TourDetail = () => {
                           Start Dates
                         </span>
                         <span className="font-semibold">
-                          {tour.startDates.length} available
+                          {(tour.startDates || []).length} available
                         </span>
                       </div>
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">Next Tour</span>
                         <span className="font-semibold">
-                          {tour.startDates[0]}
+                          {Array.isArray(tour.startDates) &&
+                          tour.startDates.length > 0
+                            ? new Date(tour.startDates[0]).toLocaleDateString()
+                            : "TBA"}
                         </span>
                       </div>
                     </div>
 
-                    <Button
-                      variant="hero"
-                      size="xl"
-                      className="w-full mb-3"
-                      onClick={() => {
-                        toast({
-                          title: "Booking Coming Soon",
-                          description:
-                            "Tour booking functionality will be available in a future update",
-                          variant: "destructive",
-                        });
-                      }}
-                    >
-                      Book Now
-                    </Button>
+                    {/* Guides */}
+                    {Array.isArray(tour.guides) && tour.guides.length > 0 && (
+                      <div className="mb-6">
+                        <h4 className="text-lg font-semibold mb-3">Guides</h4>
+                        <div className="space-y-2">
+                          {tour.guides.map((g: any) => (
+                            <div
+                              key={g._id ?? g.id}
+                              className="flex items-center gap-3"
+                            >
+                              <img
+                                src={g.photo || "/placeholder-user.png"}
+                                alt={g.name}
+                                className="w-10 h-10 rounded-full object-cover"
+                              />
+                              <div>
+                                <div className="font-semibold">{g.name}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {g.role ?? "Guide"}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Map */}
+                    <div className="mb-6">
+                      <h4 className="text-lg font-semibold mb-3">Map</h4>
+                      <div className="space-y-3">
+                        {tour.startLocation?.coordinates && (
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1">
+                              Start
+                            </p>
+                            <iframe
+                              title="start-map"
+                              src={`https://www.google.com/maps?q=${tour.startLocation.coordinates[1]},${tour.startLocation.coordinates[0]}&z=12&output=embed`}
+                              width="100%"
+                              height="150"
+                              style={{ border: 0 }}
+                            />
+                          </div>
+                        )}
+
+                        {Array.isArray(tour.locations) &&
+                          tour.locations.length > 0 &&
+                          tour.locations[tour.locations.length - 1]
+                            .coordinates && (
+                            <div>
+                              <p className="text-sm text-muted-foreground mb-1">
+                                Destination
+                              </p>
+                              <iframe
+                                title="dest-map"
+                                src={`https://www.google.com/maps?q=${
+                                  tour.locations[tour.locations.length - 1]
+                                    .coordinates[1]
+                                },${
+                                  tour.locations[tour.locations.length - 1]
+                                    .coordinates[0]
+                                }&z=12&output=embed`}
+                                width="100%"
+                                height="150"
+                                style={{ border: 0 }}
+                              />
+                            </div>
+                          )}
+                      </div>
+                    </div>
+
+                    {hasBooked ? (
+                      <Button
+                        variant="secondary"
+                        size="xl"
+                        className="w-full mb-3"
+                        disabled
+                      >
+                        <Check className="w-4 h-4 mr-2 inline-block" /> Booked
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="hero"
+                        size="xl"
+                        className="w-full mb-3"
+                        onClick={async () => {
+                          if (!isAuthenticated) {
+                            toast({
+                              title: "Login Required",
+                              description: "Please login to book this tour",
+                              variant: "destructive",
+                            });
+                            navigate("/login");
+                            return;
+                          }
+
+                          try {
+                            toast({
+                              title: "Redirecting to payment...",
+                              description:
+                                "You will be redirected to complete payment",
+                            });
+                            const resp = await bookingsAPI.create(id as string);
+                            const checkoutUrl =
+                              resp.checkout_url || resp.data?.checkout_url;
+                            if (checkoutUrl) {
+                              // redirect browser to checkout
+                              window.location.href = checkoutUrl;
+                            } else {
+                              throw new Error(
+                                "No checkout URL returned from server"
+                              );
+                            }
+                          } catch (err: any) {
+                            console.error("Booking init failed:", err);
+                            toast({
+                              title: "Error",
+                              description:
+                                err.response?.data?.message ||
+                                err.message ||
+                                "Failed to initiate booking",
+                              variant: "destructive",
+                            });
+                          }
+                        }}
+                      >
+                        Book Now
+                      </Button>
+                    )}
                     <Button
                       variant="outline"
                       size="lg"

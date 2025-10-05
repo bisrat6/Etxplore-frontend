@@ -70,8 +70,8 @@ const TourManagement = () => {
   });
 
   useEffect(() => {
-    // Redirect if not admin
-    if (user?.role !== 'admin') {
+    // Redirect if not admin or lead-guide
+    if (!['admin', 'lead-guide'].includes(user?.role)) {
       navigate('/');
       toast({
         title: 'Access Denied',
@@ -88,7 +88,15 @@ const TourManagement = () => {
     try {
       setIsLoading(true);
       const response = await toursAPI.getAll();
-      setTours(response.data.data);
+      // If current user is a lead-guide, only show tours they're assigned to
+      let toursList = response.data.data || [];
+      if (user?.role === 'lead-guide') {
+        const userId = (user as any)._id ?? (user as any).id;
+        toursList = toursList.filter((t: any) =>
+          (t.guides || []).some((g: any) => String(g._id ?? g) === String(userId))
+        );
+      }
+      setTours(toursList);
     } catch (err: any) {
       console.error('Failed to fetch tours:', err);
       setError('Failed to load tours');
@@ -275,6 +283,8 @@ const TourManagement = () => {
               <p className="text-lg text-primary-foreground/90">
                 Create, update, and manage all tours on the platform.
               </p>
+              {/* show current user role for debugging/clarity */}
+              <p className="mt-3 text-sm text-primary-foreground/80">Role: <span className="font-medium">{(user as any)?.role ?? 'guest'}</span></p>
             </motion.div>
           </div>
         </section>
@@ -306,10 +316,12 @@ const TourManagement = () => {
                     <SelectItem value="difficult">Difficult</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button onClick={handleCreate} variant="hero">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create Tour
-                </Button>
+                {['admin', 'lead-guide'].includes(user?.role) && (
+                  <Button onClick={handleCreate} variant="hero">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create Tour
+                  </Button>
+                )}
               </div>
             </div>
 
@@ -482,20 +494,34 @@ const TourManagement = () => {
                           <p className="text-sm text-muted-foreground line-clamp-2">{tour.summary}</p>
                         </div>
                         <div className="flex gap-2 ml-4">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEdit(tour)}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setDeleteId(tour.id)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                          {(() => {
+                            const userId = (user as any)?._id ?? (user as any)?.id;
+                            const canModify =
+                              user?.role === 'admin' ||
+                              (user?.role === 'lead-guide' &&
+                                (tour.guides || []).some((g: any) =>
+                                  String(g._id ?? g) === String(userId)
+                                ));
+                            if (!canModify) return null;
+                            return (
+                              <>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleEdit(tour)}
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setDeleteId(tour.id)}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </>
+                            );
+                          })()}
                         </div>
                       </div>
                       

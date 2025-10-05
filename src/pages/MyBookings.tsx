@@ -1,138 +1,197 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import Navigation from '@/components/Navigation';
-import Footer from '@/components/Footer';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { motion } from 'framer-motion';
-import { Calendar, MapPin, Users, Loader2, AlertCircle } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
+import { bookingsAPI } from "@/lib/api";
+import { Card, CardContent } from "@/components/ui/card";
+import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const MyBookings = () => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const [bookings, setBookings] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  type Booking = {
+    _id?: string;
+    id?: string;
+    tour?: { name?: string } | string | null;
+    price?: number;
+    paid?: boolean;
+    status?: string;
+    createdAt?: string;
+  };
+
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchBookings = async () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  // Extract booking fetch into a reusable function
+  const fetchBookings = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const resp = await bookingsAPI.getMyBookings();
+      // backend returns: { status, results, data: [bookings] }
+      // bookingsAPI returns response.data, so resp is that object.
+      let bookingsList: Booking[] = [];
+      if (Array.isArray(resp)) bookingsList = resp as Booking[];
+      else if (Array.isArray((resp as any).data))
+        bookingsList = (resp as any).data;
+      else if (Array.isArray((resp as any).data?.data))
+        bookingsList = (resp as any).data.data;
+      setBookings(bookingsList);
+    } catch (err: unknown) {
+      console.error("Failed to fetch bookings:", err);
+      let message = "Failed to load bookings";
       try {
-        // Booking functionality not yet implemented in backend
-        setBookings([]);
-        setError('Booking functionality is not yet available. This feature will be added in a future update.');
-      } catch (err: any) {
-        console.error('Failed to fetch bookings:', err);
-        setError('Booking functionality is not yet available.');
-        toast({
-          title: 'Feature Coming Soon',
-          description: 'Booking functionality will be available in a future update',
-          variant: 'destructive',
-        });
-      } finally {
-        setIsLoading(false);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const e = err as any;
+        if (e?.response?.data?.message)
+          message = String(e.response.data.message);
+        else if (e?.message) message = String(e.message);
+      } catch (e) {
+        // ignore
       }
+      setError(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // If Chapa redirected back with tx_ref, call verify first
+    const params = new URLSearchParams(location.search);
+    const txRef =
+      params.get("tx_ref") || params.get("txref") || params.get("txRef");
+
+    const doVerifyAndFetch = async () => {
+      if (txRef) {
+        // show a verifying toast
+        toast({
+          title: "Verifying payment",
+          description: "Please wait while we confirm your payment.",
+        });
+        try {
+          const resp = await bookingsAPI.verify(txRef);
+          // Show success message if booking created
+          const msg =
+            resp?.message || resp?.data?.message || "Payment verified";
+          toast({ title: "Payment verified", description: String(msg) });
+        } catch (err: unknown) {
+          console.error("Payment verify failed:", err);
+          let message = "Payment verification failed";
+          try {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const e = err as any;
+            if (e?.response?.data?.message)
+              message = String(e.response.data.message);
+            else if (e?.message) message = String(e.message);
+          } catch (e) {
+            // ignore parsing errors
+            // console.debug('verify error parse', e);
+          }
+          toast({
+            title: "Verification failed",
+            description: message,
+            variant: "destructive",
+          });
+        } finally {
+          // Remove query params to avoid re-verification on reload
+          navigate(
+            { pathname: location.pathname, search: "" },
+            { replace: true }
+          );
+        }
+      }
+
+      // Always fetch bookings after any potential verify
+      await fetchBookings();
     };
 
-    fetchBookings();
-  }, [toast]);
+    doVerifyAndFetch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.search]);
 
   return (
     <div className="min-h-screen flex flex-col">
       <Navigation />
-      
-      <main className="flex-1 pt-16">
-        <section className="relative bg-gradient-to-br from-primary via-primary-light to-earth py-24 text-primary-foreground">
-          <div className="absolute inset-0 pattern-ethiopian opacity-10" />
-          <div className="container mx-auto px-4 relative z-10">
-            <motion.h1 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="font-display text-5xl md:text-6xl font-bold text-center"
-            >
-              My Bookings
-            </motion.h1>
-          </div>
-        </section>
 
-        <section className="py-16">
-          <div className="container mx-auto px-4 max-w-4xl">
+      <main className="flex-1 pt-16">
+        <section className="py-20">
+          <div className="container mx-auto px-4">
+            <h1 className="font-display text-3xl font-bold mb-6">
+              My Bookings
+            </h1>
+
             {isLoading ? (
-              <div className="flex justify-center items-center py-32">
+              <div className="flex items-center justify-center py-20">
                 <Loader2 className="w-12 h-12 animate-spin text-primary" />
               </div>
             ) : error ? (
-              <Card className="border-2 border-destructive">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3 text-destructive">
-                    <AlertCircle className="w-6 h-6" />
-                    <p>{error}</p>
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="p-6 bg-destructive/10 text-destructive rounded-lg">
+                {error}
+              </div>
             ) : bookings.length === 0 ? (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-center py-16"
-              >
-                <p className="text-xl text-muted-foreground mb-6">
-                  You haven't made any bookings yet.
+              <div className="p-6 bg-muted/10 rounded-lg">
+                <p className="text-muted-foreground">
+                  You have no bookings yet.
                 </p>
-                <Button variant="adventure" onClick={() => navigate('/tours')}>
-                  Browse Tours
-                </Button>
-              </motion.div>
+              </div>
             ) : (
-              <div className="space-y-6">
-                {bookings.map((booking, index) => (
-                  <motion.div
-                    key={booking.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
+              <div className="grid gap-6">
+                {bookings.map((b) => (
+                  <Card
+                    key={b._id || b.id}
+                    className="border-0 shadow-sm rounded-lg overflow-hidden"
                   >
-                    <Card className="border-2 hover:border-primary/20 transition-colors">
-                      <CardHeader>
-                        <CardTitle className="text-2xl">{booking.tour?.name || 'Tour Name'}</CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div className="flex items-center gap-2">
-                            <Calendar className="w-5 h-5 text-primary" />
-                            <div>
-                              <p className="text-sm text-muted-foreground">Booking Date</p>
-                              <p className="font-semibold">{new Date(booking.createdAt).toLocaleDateString()}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Users className="w-5 h-5 text-primary" />
-                            <div>
-                              <p className="text-sm text-muted-foreground">Group Size</p>
-                              <p className="font-semibold">{booking.tour?.maxGroupSize || 'N/A'} people</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <MapPin className="w-5 h-5 text-primary" />
-                            <div>
-                              <p className="text-sm text-muted-foreground">Price</p>
-                              <p className="font-semibold text-primary">${booking.price || booking.tour?.price}</p>
-                            </div>
-                          </div>
+                    <CardContent className="p-4 md:p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-foreground text-lg">
+                          {typeof b.tour === "string"
+                            ? b.tour
+                            : b.tour?.name || "Tour"}
+                        </h3>
+
+                        <div className="mt-2 flex flex-col sm:flex-row sm:items-center sm:gap-4 text-sm text-muted-foreground">
+                          <span>
+                            Booked on:{" "}
+                            {b.createdAt
+                              ? new Date(b.createdAt).toLocaleString()
+                              : "Unknown"}
+                          </span>
+                          <span className="mt-1 sm:mt-0">
+                            Price:{" "}
+                            <span className="font-medium text-foreground">
+                              ${b.price ?? "—"}
+                            </span>
+                          </span>
                         </div>
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            onClick={() => navigate(`/tours/${booking.tour?.id || booking.tour}`)}
-                          >
-                            View Tour
-                          </Button>
+                      </div>
+
+                      <div className="flex items-center gap-4 mt-3 md:mt-0">
+                        <div
+                          className="px-3 py-1 rounded-full text-sm font-medium"
+                          style={{
+                            backgroundColor: b.paid
+                              ? "rgba(16,185,129,0.12)"
+                              : "rgba(220,38,38,0.08)",
+                            color: b.paid ? "#10B981" : "#DC2626",
+                          }}
+                        >
+                          {b.paid ? "Paid" : b.status || "Pending"}
                         </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
+
+                        <div className="text-sm text-muted-foreground">
+                          <span className="block">Total</span>
+                          <span className="font-semibold text-foreground">
+                            ${b.price ?? "—"}
+                          </span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
             )}

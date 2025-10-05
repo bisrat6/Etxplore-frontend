@@ -229,6 +229,25 @@ const Profile = () => {
                         </Button>
                       </>
                     )}
+
+                    {/* Lead Guide Links */}
+                    {user?.role === "lead-guide" && (
+                      <>
+                        <div className="pt-4 border-t">
+                          <p className="text-sm font-medium text-muted-foreground mb-3">
+                            Guide Panel
+                          </p>
+                        </div>
+                        <Button
+                          variant="hero"
+                          size="lg"
+                          onClick={() => navigate("/admin/tours")}
+                          className="w-full"
+                        >
+                          Manage My Tours
+                        </Button>
+                      </>
+                    )}
                   </div>
 
                   <div className="pt-4 border-t">
