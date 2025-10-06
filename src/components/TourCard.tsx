@@ -98,7 +98,9 @@ const TourCard = ({ tour }: TourCardProps) => {
           <div className="flex items-center justify-between">
             <div>
               <span className="text-sm text-muted-foreground">From</span>
-              <p className="text-3xl font-bold text-primary">${tour.price}</p>
+              <p className="text-3xl font-bold text-primary">
+                ETB {tour.price}
+              </p>
             </div>
             <Button asChild variant="adventure" size="default">
               <Link to={`/tours/${tour._id ?? tour.id}`}>Details</Link>

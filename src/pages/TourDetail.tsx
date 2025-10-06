@@ -609,7 +609,7 @@ const TourDetail = () => {
                         Price per person
                       </p>
                       <p className="text-5xl font-bold text-primary">
-                        ${tour.price}
+                        ETB {tour.price}
                       </p>
                     </div>
 

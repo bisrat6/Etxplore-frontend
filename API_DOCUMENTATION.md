@@ -1,13 +1,14 @@
 # Etxplore API Documentation
 
 ## Base URL
+
 ```
 http://localhost:3000/api/v1
 ```
 
 ## Getting Started
 
-1. Make sure your backend server is running on `http://localhost:3000`
+1. Make sure your backend server is running on `http://localhost:3000` (or set the API base for the frontend using Vite env below)
 2. The frontend is configured to connect to this backend automatically
 3. All authenticated requests require a Bearer token in the Authorization header
 
@@ -18,6 +19,7 @@ All authenticated requests automatically include the token from localStorage via
 ### Endpoints
 
 #### Sign Up
+
 ```
 POST /api/v1/users/signup
 Content-Type: application/json
@@ -33,6 +35,7 @@ Response: { token: string, data: { user: {...} } }
 ```
 
 #### Login
+
 ```
 POST /api/v1/users/login
 Content-Type: application/json
@@ -46,6 +49,7 @@ Response: { token: string, data: { user: {...} } }
 ```
 
 #### Forgot Password
+
 ```
 POST /api/v1/users/forgotPassword
 Content-Type: application/json
@@ -58,6 +62,7 @@ Response: { status: "success", message: "Token sent to email" }
 ```
 
 #### Reset Password
+
 ```
 PATCH /api/v1/users/resetPassword/:token
 Content-Type: application/json
@@ -71,6 +76,7 @@ Response: { token: string, data: { user: {...} } }
 ```
 
 #### Update My Password
+
 ```
 PATCH /api/v1/users/updateMyPassword
 Authorization: Bearer {token}
@@ -90,6 +96,7 @@ Response: { token: string, data: { user: {...} } }
 ### Endpoints
 
 #### Get All Tours
+
 ```
 GET /api/v1/tours
 GET /api/v1/tours?difficulty=easy
@@ -100,6 +107,7 @@ Response: { status: "success", results: number, data: { data: [...] } }
 ```
 
 **Supported Query Parameters:**
+
 - `difficulty`: easy, medium, difficult
 - `duration[gte]`, `duration[lte]`, `duration[gt]`, `duration[lt]`: Filter by duration
 - `price[gte]`, `price[lte]`, `price[gt]`, `price[lt]`: Filter by price
@@ -108,6 +116,7 @@ Response: { status: "success", results: number, data: { data: [...] } }
 - `page`, `limit`: Pagination
 
 #### Get Single Tour
+
 ```
 GET /api/v1/tours/:id
 
@@ -115,6 +124,7 @@ Response: { status: "success", data: { data: {...} } }
 ```
 
 #### Get Top 5 Cheap Tours
+
 ```
 GET /api/v1/tours/top-5-cheap
 
@@ -122,6 +132,7 @@ Response: { status: "success", results: number, data: { data: [...] } }
 ```
 
 #### Get Tour Statistics
+
 ```
 GET /api/v1/tours/tour-stats
 
@@ -129,6 +140,7 @@ Response: { status: "success", data: { stats: [...] } }
 ```
 
 #### Get Monthly Plan
+
 ```
 GET /api/v1/tours/monthly-plan/:year
 Authorization: Bearer {token}
@@ -139,6 +151,7 @@ Response: { status: "success", data: { plan: [...] } }
 ```
 
 #### Get Tours Within Radius
+
 ```
 GET /api/v1/tours/tours-within/:distance/center/:latlng/unit/:unit
 
@@ -148,6 +161,7 @@ Response: { status: "success", results: number, data: { data: [...] } }
 ```
 
 #### Get Distances to Tours
+
 ```
 GET /api/v1/tours/distances/:latlng/unit/:unit
 
@@ -157,6 +171,7 @@ Response: { status: "success", data: { data: [...] } }
 ```
 
 #### Create Tour (Admin Only)
+
 ```
 POST /api/v1/tours
 Authorization: Bearer {token}
@@ -176,6 +191,7 @@ Response: { status: "success", data: { data: {...} } }
 ```
 
 #### Update Tour (Admin Only)
+
 ```
 PATCH /api/v1/tours/:id
 Authorization: Bearer {token}
@@ -190,6 +206,7 @@ Response: { status: "success", data: { data: {...} } }
 ```
 
 #### Delete Tour (Admin Only)
+
 ```
 DELETE /api/v1/tours/:id
 Authorization: Bearer {token}
@@ -202,6 +219,7 @@ Response: { status: "success", data: null }
 ### Endpoints
 
 #### Get All Reviews
+
 ```
 GET /api/v1/reviews
 Authorization: Bearer {token}
@@ -210,6 +228,7 @@ Response: { status: "success", results: number, data: { data: [...] } }
 ```
 
 #### Get Single Review
+
 ```
 GET /api/v1/reviews/:id
 Authorization: Bearer {token}
@@ -218,6 +237,7 @@ Response: { status: "success", data: { data: {...} } }
 ```
 
 #### Get Reviews for Tour
+
 ```
 GET /api/v1/tours/:tourId/reviews
 Authorization: Bearer {token}
@@ -226,6 +246,7 @@ Response: { status: "success", results: number, data: { data: [...] } }
 ```
 
 #### Create Review
+
 ```
 POST /api/v1/reviews
 Authorization: Bearer {token}
@@ -242,6 +263,7 @@ Response: { status: "success", data: { data: {...} } }
 ```
 
 #### Create Review for Tour (Nested Route)
+
 ```
 POST /api/v1/tours/:tourId/reviews
 Authorization: Bearer {token}
@@ -256,6 +278,7 @@ Response: { status: "success", data: { data: {...} } }
 ```
 
 #### Update Review
+
 ```
 PATCH /api/v1/reviews/:id
 Authorization: Bearer {token}
@@ -270,6 +293,7 @@ Response: { status: "success", data: { data: {...} } }
 ```
 
 #### Delete Review
+
 ```
 DELETE /api/v1/reviews/:id
 Authorization: Bearer {token}
@@ -282,6 +306,7 @@ Response: { status: "success", data: null }
 ### Endpoints
 
 #### Get All Users (Admin Only)
+
 ```
 GET /api/v1/users
 GET /api/v1/users?role=user
@@ -291,6 +316,7 @@ Response: { status: "success", results: number, data: { data: [...] } }
 ```
 
 #### Get Single User (Admin Only)
+
 ```
 GET /api/v1/users/:id
 Authorization: Bearer {token}
@@ -299,6 +325,7 @@ Response: { status: "success", data: { data: {...} } }
 ```
 
 #### Get Current User
+
 ```
 GET /api/v1/users/me
 Authorization: Bearer {token}
@@ -307,6 +334,7 @@ Response: { status: "success", data: { data: {...} } }
 ```
 
 #### Update Current User
+
 ```
 PATCH /api/v1/users/updateMe
 Authorization: Bearer {token}
@@ -321,6 +349,7 @@ Response: { status: "success", data: { user: {...} } }
 ```
 
 #### Delete Current User
+
 ```
 DELETE /api/v1/users/deleteMe
 Authorization: Bearer {token}
@@ -329,6 +358,7 @@ Response: { status: "success", data: null }
 ```
 
 #### Update User (Admin Only)
+
 ```
 PATCH /api/v1/users/:id
 Authorization: Bearer {token}
@@ -342,6 +372,7 @@ Response: { status: "success", data: { data: {...} } }
 ```
 
 #### Delete User (Admin Only)
+
 ```
 DELETE /api/v1/users/:id
 Authorization: Bearer {token}
@@ -354,6 +385,7 @@ Response: { status: "success", data: null }
 ### Endpoints
 
 #### Get All Bookings (Admin Only)
+
 ```
 GET /api/v1/bookings
 Authorization: Bearer {token}
@@ -362,6 +394,7 @@ Response: { status: "success", results: number, data: { data: [...] } }
 ```
 
 #### Get Single Booking
+
 ```
 GET /api/v1/bookings/:id
 Authorization: Bearer {token}
@@ -370,6 +403,7 @@ Response: { status: "success", data: { data: {...} } }
 ```
 
 #### Get My Bookings
+
 ```
 GET /api/v1/bookings/my-bookings
 Authorization: Bearer {token}
@@ -378,6 +412,7 @@ Response: { status: "success", results: number, data: { data: [...] } }
 ```
 
 #### Create Booking
+
 ```
 POST /api/v1/bookings
 Authorization: Bearer {token}
@@ -393,32 +428,41 @@ Response: { status: "success", data: { data: {...} } }
 ## Frontend Pages Connected to API
 
 ### Public Pages
+
 1. **Home** (`/`)
+
    - Fetches top 5 cheap tours
    - Uses: `GET /api/v1/tours/top-5-cheap`
 
 2. **All Tours** (`/tours`)
+
    - Lists all tours with filters
    - Uses: `GET /api/v1/tours` with query params
 
 3. **Single Tour** (`/tours/:id`)
+
    - Shows tour details and reviews
    - Uses: `GET /api/v1/tours/:id`
    - Uses: `GET /api/v1/tours/:tourId/reviews`
 
 4. **About** (`/about`)
+
    - Static page
 
 5. **Contact** (`/contact`)
+
    - Contact form (frontend only for now)
 
 6. **Login** (`/login`)
+
    - Uses: `POST /api/v1/users/login`
 
 7. **Signup** (`/signup`)
+
    - Uses: `POST /api/v1/users/signup`
 
 8. **Forgot Password** (`/forgot-password`)
+
    - Uses: `POST /api/v1/users/forgotPassword`
 
 9. **Reset Password** (`/reset-password/:token`)
@@ -427,10 +471,12 @@ Response: { status: "success", data: { data: {...} } }
 ### Protected Pages (Require Authentication)
 
 1. **Profile** (`/profile`)
+
    - Shows user info
    - Uses: `GET /api/v1/users/me`
 
 2. **My Bookings** (`/my-bookings`)
+
    - Lists user's bookings
    - Uses: `GET /api/v1/bookings/my-bookings`
 
@@ -442,12 +488,14 @@ Response: { status: "success", data: { data: {...} } }
 ## Testing Locally
 
 ### Prerequisites
+
 1. Backend server running on `http://localhost:3000`
-2. Frontend running (default: `http://localhost:5173` with Vite)
+2. Frontend running (default: `http://localhost:5173` with Vite). When deploying the frontend separately, set the environment variable `VITE_API_BASE_URL` at build time to point to your backend API (for example: `https://api.yourdomain.com/api/v1`).
 
 ### Step-by-Step Testing Guide
 
 #### 1. Test Authentication Flow
+
 1. Go to `/signup` and create a new account
 2. Check that you're redirected to home and see your name in the navigation
 3. Logout from `/profile`
@@ -455,18 +503,21 @@ Response: { status: "success", data: { data: {...} } }
 5. Test "Forgot Password" link (if backend email is configured)
 
 #### 2. Test Tours
+
 1. Go to `/tours` to see all tours
 2. Use the difficulty filters to filter tours
 3. Click "Connect to API" button to fetch from backend
 4. Click on a tour to view details at `/tours/:id`
 
 #### 3. Test Bookings
+
 1. While logged in, go to a tour detail page
 2. Click "Book Now" (if implemented)
 3. Go to `/my-bookings` to see your bookings
 4. Check that bookings display correctly
 
 #### 4. Test Reviews
+
 1. While logged in, go to `/my-reviews`
 2. If you have reviews, they should display
 3. Test delete functionality
@@ -475,20 +526,26 @@ Response: { status: "success", data: { data: {...} } }
 ### Troubleshooting
 
 #### CORS Issues
+
 If you see CORS errors, make sure your backend has CORS configured:
+
 ```javascript
-app.use(cors({
-  origin: 'http://localhost:5173',
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 ```
 
 #### 401 Unauthorized
+
 - Check that the token is being stored in localStorage
 - Check that the Authorization header is being sent
 - Verify token hasn't expired
 
 #### Network Errors
+
 - Ensure backend is running on correct port (3000)
 - Check that API_BASE_URL in `src/lib/api.ts` is correct
 - Use browser DevTools Network tab to inspect requests
@@ -498,6 +555,7 @@ app.use(cors({
 All API responses follow this structure:
 
 ### Success Response
+
 ```json
 {
   "status": "success",
@@ -509,9 +567,10 @@ All API responses follow this structure:
 ```
 
 ### Error Response
+
 ```json
 {
-  "status": "fail",  // or "error"
+  "status": "fail", // or "error"
   "message": "Error message here"
 }
 ```
@@ -519,6 +578,7 @@ All API responses follow this structure:
 ## Environment Variables
 
 The frontend uses these configuration:
+
 - `API_BASE_URL`: Set in `src/lib/api.ts` to `http://localhost:3000/api/v1`
 
 For production, update this to your production API URL.

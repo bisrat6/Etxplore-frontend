@@ -1,26 +1,26 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import Navigation from '@/components/Navigation';
-import Footer from '@/components/Footer';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { motion } from 'framer-motion';
-import { 
-  Users, 
-  MapPin, 
-  MessageSquare, 
-  TrendingUp, 
-  DollarSign, 
+import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
+import {
+  Users,
+  MapPin,
+  MessageSquare,
+  TrendingUp,
+  DollarSign,
   Star,
   Loader2,
   AlertCircle,
   BarChart3,
   Calendar,
-  UserCheck
-} from 'lucide-react';
-import { toursAPI, usersAPI, reviewsAPI } from '@/lib/api';
-import { useToast } from '@/hooks/use-toast';
+  UserCheck,
+} from "lucide-react";
+import { toursAPI, usersAPI, reviewsAPI } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -32,23 +32,28 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     // Redirect if not admin
-    if (user?.role !== 'admin') {
-      navigate('/');
+    if (user?.role !== "admin") {
+      navigate("/");
       toast({
-        title: 'Access Denied',
-        description: 'Admin access required',
-        variant: 'destructive',
+        title: "Access Denied",
+        description: "Admin access required",
+        variant: "destructive",
       });
       return;
     }
 
     const fetchStats = async () => {
       try {
-        const [toursResponse, usersResponse, reviewsResponse, tourStatsResponse] = await Promise.all([
+        const [
+          toursResponse,
+          usersResponse,
+          reviewsResponse,
+          tourStatsResponse,
+        ] = await Promise.all([
           toursAPI.getAll(),
           usersAPI.getAll(),
           reviewsAPI.getAll(),
-          toursAPI.getTourStats()
+          toursAPI.getTourStats(),
         ]);
 
         const tours = toursResponse.data.data;
@@ -57,9 +62,19 @@ const AdminDashboard = () => {
         const tourStats = tourStatsResponse.data.data;
 
         // Calculate additional stats
-        const totalRevenue = tours.reduce((sum: number, tour: any) => sum + (tour.price * (tour.ratingsQuantity || 0)), 0);
-        const averageRating = tours.reduce((sum: number, tour: any) => sum + (tour.ratingsAverage || 0), 0) / tours.length;
-        const activeUsers = users.filter((user: any) => user.active !== false).length;
+        const totalRevenue = tours.reduce(
+          (sum: number, tour: any) =>
+            sum + tour.price * (tour.ratingsQuantity || 0),
+          0
+        );
+        const averageRating =
+          tours.reduce(
+            (sum: number, tour: any) => sum + (tour.ratingsAverage || 0),
+            0
+          ) / tours.length;
+        const activeUsers = users.filter(
+          (user: any) => user.active !== false
+        ).length;
         const recentReviews = reviews.slice(0, 5);
 
         setStats({
@@ -71,15 +86,15 @@ const AdminDashboard = () => {
           averageRating: averageRating || 0,
           tourStats,
           recentReviews,
-          tours: tours.slice(0, 5) // Recent tours
+          tours: tours.slice(0, 5), // Recent tours
         });
       } catch (err: any) {
-        console.error('Failed to fetch stats:', err);
-        setError('Failed to load dashboard statistics');
+        console.error("Failed to fetch stats:", err);
+        setError("Failed to load dashboard statistics");
         toast({
-          title: 'Error',
-          description: 'Failed to load dashboard data',
-          variant: 'destructive',
+          title: "Error",
+          description: "Failed to load dashboard data",
+          variant: "destructive",
         });
       } finally {
         setIsLoading(false);
@@ -126,13 +141,13 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navigation />
-      
+
       <main className="flex-1 pt-16">
         {/* Header */}
         <section className="relative bg-gradient-to-br from-primary via-primary-light to-earth py-24 text-primary-foreground">
           <div className="absolute inset-0 pattern-ethiopian opacity-10" />
           <div className="container mx-auto px-4 relative z-10">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
@@ -143,7 +158,8 @@ const AdminDashboard = () => {
                 Admin Dashboard
               </h1>
               <p className="text-lg text-primary-foreground/90">
-                Welcome back, {user?.name}! Here's an overview of your platform's performance.
+                Welcome back, {user?.name}! Here's an overview of your
+                platform's performance.
               </p>
             </motion.div>
           </div>
@@ -163,8 +179,12 @@ const AdminDashboard = () => {
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-muted-foreground">Total Tours</p>
-                        <p className="text-3xl font-bold text-primary">{stats?.totalTours || 0}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Total Tours
+                        </p>
+                        <p className="text-3xl font-bold text-primary">
+                          {stats?.totalTours || 0}
+                        </p>
                       </div>
                       <MapPin className="w-8 h-8 text-primary" />
                     </div>
@@ -182,9 +202,15 @@ const AdminDashboard = () => {
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-muted-foreground">Total Users</p>
-                        <p className="text-3xl font-bold text-primary">{stats?.totalUsers || 0}</p>
-                        <p className="text-xs text-muted-foreground">{stats?.activeUsers || 0} active</p>
+                        <p className="text-sm text-muted-foreground">
+                          Total Users
+                        </p>
+                        <p className="text-3xl font-bold text-primary">
+                          {stats?.totalUsers || 0}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {stats?.activeUsers || 0} active
+                        </p>
                       </div>
                       <Users className="w-8 h-8 text-primary" />
                     </div>
@@ -202,8 +228,12 @@ const AdminDashboard = () => {
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-muted-foreground">Total Reviews</p>
-                        <p className="text-3xl font-bold text-primary">{stats?.totalReviews || 0}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Total Reviews
+                        </p>
+                        <p className="text-3xl font-bold text-primary">
+                          {stats?.totalReviews || 0}
+                        </p>
                       </div>
                       <MessageSquare className="w-8 h-8 text-primary" />
                     </div>
@@ -221,8 +251,12 @@ const AdminDashboard = () => {
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-muted-foreground">Avg Rating</p>
-                        <p className="text-3xl font-bold text-primary">{stats?.averageRating?.toFixed(1) || '0.0'}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Avg Rating
+                        </p>
+                        <p className="text-3xl font-bold text-primary">
+                          {stats?.averageRating?.toFixed(1) || "0.0"}
+                        </p>
                       </div>
                       <Star className="w-8 h-8 text-primary fill-primary" />
                     </div>
@@ -247,26 +281,26 @@ const AdminDashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Button 
-                      variant="hero" 
-                      size="lg" 
-                      onClick={() => navigate('/admin/tours')}
+                    <Button
+                      variant="hero"
+                      size="lg"
+                      onClick={() => navigate("/admin/tours")}
                       className="w-full"
                     >
                       Manage Tours
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      size="lg" 
-                      onClick={() => navigate('/admin/users')}
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      onClick={() => navigate("/admin/users")}
                       className="w-full"
                     >
                       Manage Users
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      size="lg" 
-                      onClick={() => navigate('/my-reviews')}
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      onClick={() => navigate("/my-reviews")}
                       className="w-full"
                     >
                       View All Reviews
@@ -294,18 +328,27 @@ const AdminDashboard = () => {
                   <CardContent>
                     <div className="space-y-4">
                       {stats?.tours?.map((tour: any) => (
-                        <div key={tour.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div
+                          key={tour.id}
+                          className="flex items-center justify-between p-3 border rounded-lg"
+                        >
                           <div>
                             <p className="font-semibold">{tour.name}</p>
-                            <p className="text-sm text-muted-foreground">${tour.price} • {tour.difficulty}</p>
+                            <p className="text-sm text-muted-foreground">
+                              ETB {tour.price} • {tour.difficulty}
+                            </p>
                           </div>
                           <div className="flex items-center gap-1">
                             <Star className="w-4 h-4 text-secondary fill-secondary" />
-                            <span className="text-sm">{tour.ratingsAverage?.toFixed(1) || '0.0'}</span>
+                            <span className="text-sm">
+                              {tour.ratingsAverage?.toFixed(1) || "0.0"}
+                            </span>
                           </div>
                         </div>
                       )) || (
-                        <p className="text-muted-foreground text-center py-4">No tours available</p>
+                        <p className="text-muted-foreground text-center py-4">
+                          No tours available
+                        </p>
                       )}
                     </div>
                   </CardContent>
@@ -330,19 +373,25 @@ const AdminDashboard = () => {
                       {stats?.recentReviews?.map((review: any) => (
                         <div key={review.id} className="p-3 border rounded-lg">
                           <div className="flex items-center justify-between mb-2">
-                            <p className="font-semibold">{review.user?.name || 'Anonymous'}</p>
+                            <p className="font-semibold">
+                              {review.user?.name || "Anonymous"}
+                            </p>
                             <div className="flex items-center gap-1">
                               <Star className="w-4 h-4 text-secondary fill-secondary" />
                               <span className="text-sm">{review.rating}</span>
                             </div>
                           </div>
-                          <p className="text-sm text-muted-foreground line-clamp-2">{review.review}</p>
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {review.review}
+                          </p>
                           <p className="text-xs text-muted-foreground mt-1">
-                            {review.tour?.name || 'Tour'}
+                            {review.tour?.name || "Tour"}
                           </p>
                         </div>
                       )) || (
-                        <p className="text-muted-foreground text-center py-4">No reviews available</p>
+                        <p className="text-muted-foreground text-center py-4">
+                          No reviews available
+                        </p>
                       )}
                     </div>
                   </CardContent>

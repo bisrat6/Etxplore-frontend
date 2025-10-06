@@ -164,7 +164,7 @@ const MyBookings = () => {
                           <span className="mt-1 sm:mt-0">
                             Price:{" "}
                             <span className="font-medium text-foreground">
-                              ${b.price ?? "—"}
+                              ETB {b.price ?? "—"}
                             </span>
                           </span>
                         </div>
@@ -186,7 +186,7 @@ const MyBookings = () => {
                         <div className="text-sm text-muted-foreground">
                           <span className="block">Total</span>
                           <span className="font-semibold text-foreground">
-                            ${b.price ?? "—"}
+                            ETB {b.price ?? "—"}
                           </span>
                         </div>
                       </div>
