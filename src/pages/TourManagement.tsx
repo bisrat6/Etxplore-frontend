@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion } from 'framer-motion';
 import { 
@@ -60,7 +61,12 @@ const TourManagement = () => {
     duration: '',
     maxGroupSize: '',
     difficulty: 'easy',
-    startLocation: '',
+    // start location structured
+    startLocationAddress: '',
+    startLocationDescription: '',
+    startLocationLat: '',
+    startLocationLng: '',
+    // locations multi-line, one per line: address|description|lat|lng|day
     locations: '',
     startDates: '',
     imageCover: '',
@@ -120,7 +126,10 @@ const TourManagement = () => {
       duration: '',
       maxGroupSize: '',
       difficulty: 'easy',
-      startLocation: '',
+      startLocationAddress: '',
+      startLocationDescription: '',
+      startLocationLat: '',
+      startLocationLng: '',
       locations: '',
       startDates: '',
       imageCover: '',
@@ -141,12 +150,19 @@ const TourManagement = () => {
       duration: tour.duration?.toString() || '',
       maxGroupSize: tour.maxGroupSize?.toString() || '',
       difficulty: tour.difficulty || 'easy',
-      startLocation: tour.startLocation?.description || '',
-      locations: tour.locations?.map((loc: any) => loc.description).join(', ') || '',
-      startDates: tour.startDates?.join(', ') || '',
+      startLocationAddress: tour.startLocation?.address || '',
+      startLocationDescription: tour.startLocation?.description || '',
+      startLocationLat: Array.isArray(tour.startLocation?.coordinates) ? String(tour.startLocation.coordinates[1] ?? '') : '',
+      startLocationLng: Array.isArray(tour.startLocation?.coordinates) ? String(tour.startLocation.coordinates[0] ?? '') : '',
+      locations: (tour.locations || []).map((loc: any) => {
+        const lat = Array.isArray(loc.coordinates) ? String(loc.coordinates[1] ?? '') : '';
+        const lng = Array.isArray(loc.coordinates) ? String(loc.coordinates[0] ?? '') : '';
+        return `${loc.address || ''}|${loc.description || ''}|${lat}|${lng}|${loc.day || ''}`;
+      }).join('\n'),
+      startDates: tour.startDates?.map((d: string | Date) => new Date(d).toISOString().slice(0,10)).join(', ') || '',
       imageCover: tour.imageCover || '',
       images: tour.images?.join(', ') || '',
-      guides: tour.guides?.join(', ') || '',
+      guides: (tour.guides || []).map((g: any) => String(g._id ?? g)).join(', '),
       secretTour: tour.secretTour || false
     });
     setShowForm(true);
@@ -155,10 +171,10 @@ const TourManagement = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.description || !formData.price) {
+    if (!formData.name || !formData.description || !formData.price || !formData.duration || !formData.maxGroupSize || !formData.imageCover) {
       toast({
         title: 'Missing fields',
-        description: 'Please fill in required fields',
+        description: 'Please fill in name, description, price, duration, max group size, and cover image',
         variant: 'destructive',
       });
       return;
@@ -166,6 +182,26 @@ const TourManagement = () => {
 
     setSubmitting(true);
     try {
+      // Parse start location coordinates
+      const lat = parseFloat(formData.startLocationLat);
+      const lng = parseFloat(formData.startLocationLng);
+      const hasCoords = !Number.isNaN(lat) && !Number.isNaN(lng);
+
+      // Parse locations lines: address|description|lat|lng|day
+      const parsedLocations = (formData.locations || '').split('\n').map(line => line.trim()).filter(Boolean).map(line => {
+        const [addr='', desc='', latStr='', lngStr='', dayStr=''] = line.split('|');
+        const plat = parseFloat(latStr);
+        const plng = parseFloat(lngStr);
+        const pday = parseInt(dayStr);
+        return {
+          type: 'Point',
+          coordinates: (!Number.isNaN(plng) && !Number.isNaN(plat)) ? [plng, plat] : [0, 0],
+          address: addr.trim(),
+          description: desc.trim(),
+          day: Number.isNaN(pday) ? undefined : pday
+        };
+      });
+
       const tourData = {
         name: formData.name,
         description: formData.description,
@@ -174,18 +210,13 @@ const TourManagement = () => {
         duration: parseInt(formData.duration) || 1,
         maxGroupSize: parseInt(formData.maxGroupSize) || 10,
         difficulty: formData.difficulty,
-        startLocation: formData.startLocation ? {
+        startLocation: (formData.startLocationAddress || formData.startLocationDescription || hasCoords) ? {
           type: 'Point',
-          coordinates: [0, 0], // Default coordinates
-          address: formData.startLocation,
-          description: formData.startLocation
+          coordinates: hasCoords ? [lng, lat] : [0, 0],
+          address: formData.startLocationAddress,
+          description: formData.startLocationDescription
         } : undefined,
-        locations: formData.locations ? formData.locations.split(',').map(loc => ({
-          type: 'Point',
-          coordinates: [0, 0],
-          address: loc.trim(),
-          description: loc.trim()
-        })) : [],
+        locations: parsedLocations,
         startDates: formData.startDates ? formData.startDates.split(',').map(date => new Date(date.trim())) : [],
         imageCover: formData.imageCover || undefined,
         images: formData.images ? formData.images.split(',').map(img => img.trim()).filter(img => img) : [],
@@ -361,7 +392,7 @@ const TourManagement = () => {
                           />
                         </div>
                         <div>
-                          <Label htmlFor="duration">Duration (days)</Label>
+                          <Label htmlFor="duration">Duration (days) *</Label>
                           <Input
                             id="duration"
                             type="number"
@@ -370,7 +401,7 @@ const TourManagement = () => {
                           />
                         </div>
                         <div>
-                          <Label htmlFor="maxGroupSize">Max Group Size</Label>
+                          <Label htmlFor="maxGroupSize">Max Group Size *</Label>
                           <Input
                             id="maxGroupSize"
                             type="number"
@@ -392,12 +423,29 @@ const TourManagement = () => {
                           </Select>
                         </div>
                         <div>
-                          <Label htmlFor="startLocation">Start Location</Label>
-                          <Input
-                            id="startLocation"
-                            value={formData.startLocation}
-                            onChange={(e) => setFormData({ ...formData, startLocation: e.target.value })}
-                          />
+                          <Label>Start Location (optional)</Label>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                            <Input
+                              placeholder="Address"
+                              value={formData.startLocationAddress}
+                              onChange={(e) => setFormData({ ...formData, startLocationAddress: e.target.value })}
+                            />
+                            <Input
+                              placeholder="Description"
+                              value={formData.startLocationDescription}
+                              onChange={(e) => setFormData({ ...formData, startLocationDescription: e.target.value })}
+                            />
+                            <Input
+                              placeholder="Latitude"
+                              value={formData.startLocationLat}
+                              onChange={(e) => setFormData({ ...formData, startLocationLat: e.target.value })}
+                            />
+                            <Input
+                              placeholder="Longitude"
+                              value={formData.startLocationLng}
+                              onChange={(e) => setFormData({ ...formData, startLocationLng: e.target.value })}
+                            />
+                          </div>
                         </div>
                       </div>
 
@@ -450,6 +498,37 @@ const TourManagement = () => {
                           onChange={(e) => setFormData({ ...formData, images: e.target.value })}
                           placeholder="url1, url2, url3"
                         />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="locations">Itinerary Locations (one per line)</Label>
+                        <p className="text-xs text-muted-foreground mb-2">Format: address|description|lat|lng|day</p>
+                        <Textarea
+                          id="locations"
+                          value={formData.locations}
+                          onChange={(e) => setFormData({ ...formData, locations: e.target.value })}
+                          rows={4}
+                          placeholder={'Addis Ababa|Arrival and city tour|8.9806|38.7578|1'}
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="guides">Guide IDs (comma separated)</Label>
+                        <Input
+                          id="guides"
+                          value={formData.guides}
+                          onChange={(e) => setFormData({ ...formData, guides: e.target.value })}
+                          placeholder="64f1..., 64f2..., 64f3..."
+                        />
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <Checkbox
+                          checked={formData.secretTour}
+                          onCheckedChange={(checked) => setFormData({ ...formData, secretTour: Boolean(checked) })}
+                          id="secretTour"
+                        />
+                        <Label htmlFor="secretTour">Mark as secret tour</Label>
                       </div>
 
                       <div className="flex gap-4">

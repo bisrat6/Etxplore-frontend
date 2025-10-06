@@ -1,55 +1,86 @@
-import { useState } from 'react';
-import Navigation from '@/components/Navigation';
-import Footer from '@/components/Footer';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { motion } from 'framer-motion';
-import { Mail, Phone, MapPin, Send } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useState } from "react";
+import emailjs from "@emailjs/browser";
+import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { motion } from "framer-motion";
+import { Mail, Phone, MapPin, Send } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const Contact = () => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [subject, setSubject] = useState('');
-  const [message, setMessage] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [subject, setSubject] = useState("");
+  const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!name || !email || !subject || !message) {
       toast({
-        title: 'Missing fields',
-        description: 'Please fill in all fields',
-        variant: 'destructive',
+        title: "Missing fields",
+        description: "Please fill in all fields",
+        variant: "destructive",
       });
       return;
     }
 
     setIsSubmitting(true);
-    
-    // Simulate API call
-    setTimeout(() => {
+
+    const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+    const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+
+    if (!serviceId || !templateId || !publicKey) {
       toast({
-        title: 'Message sent!',
-        description: 'We will get back to you as soon as possible',
+        title: "Email not configured",
+        description:
+          "EmailJS keys are missing. Please set VITE_EMAILJS_SERVICE_ID, VITE_EMAILJS_TEMPLATE_ID and VITE_EMAILJS_PUBLIC_KEY in your environment.",
+        variant: "destructive",
       });
-      setName('');
-      setEmail('');
-      setSubject('');
-      setMessage('');
       setIsSubmitting(false);
-    }, 1000);
+      return;
+    }
+
+    const templateParams = {
+      from_name: name,
+      from_email: email,
+      subject,
+      message,
+    };
+
+    try {
+      await emailjs.send(serviceId, templateId, templateParams, publicKey);
+      toast({
+        title: "Message sent!",
+        description: "We will get back to you as soon as possible",
+      });
+      setName("");
+      setEmail("");
+      setSubject("");
+      setMessage("");
+    } catch (err: any) {
+      console.error("EmailJS error", err);
+      toast({
+        title: "Send failed",
+        description: err?.text || "Failed to send message. Try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <div className="min-h-screen flex flex-col">
       <Navigation />
-      
+
       <main className="flex-1 pt-16">
         <section className="relative bg-gradient-to-br from-primary via-primary-light to-earth py-24 text-primary-foreground">
           <div className="absolute inset-0 pattern-ethiopian opacity-10" />
@@ -63,7 +94,8 @@ const Contact = () => {
                 Get in Touch
               </h1>
               <p className="text-lg text-primary-foreground/90">
-                Have questions about our tours? We're here to help you plan your perfect Ethiopian adventure.
+                Have questions about our tours? We're here to help you plan your
+                perfect Ethiopian adventure.
               </p>
             </motion.div>
           </div>
@@ -87,7 +119,9 @@ const Contact = () => {
                         </div>
                         <div>
                           <h3 className="font-semibold mb-1">Email</h3>
-                          <p className="text-muted-foreground">info@etxplore.com</p>
+                          <p className="text-muted-foreground">
+                            info@etxplore.com
+                          </p>
                         </div>
                       </div>
                     </CardContent>
@@ -107,7 +141,9 @@ const Contact = () => {
                         </div>
                         <div>
                           <h3 className="font-semibold mb-1">Phone</h3>
-                          <p className="text-muted-foreground">+251 11 123 4567</p>
+                          <p className="text-muted-foreground">
+                            +251 11 123 4567
+                          </p>
                         </div>
                       </div>
                     </CardContent>
@@ -128,7 +164,8 @@ const Contact = () => {
                         <div>
                           <h3 className="font-semibold mb-1">Address</h3>
                           <p className="text-muted-foreground">
-                            Bole, Addis Ababa<br />
+                            Bole, Addis Ababa
+                            <br />
                             Ethiopia
                           </p>
                         </div>
@@ -147,7 +184,9 @@ const Contact = () => {
                 >
                   <Card className="border-2 shadow-xl">
                     <CardHeader>
-                      <CardTitle className="text-2xl">Send us a Message</CardTitle>
+                      <CardTitle className="text-2xl">
+                        Send us a Message
+                      </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <form onSubmit={handleSubmit} className="space-y-4">
@@ -199,15 +238,15 @@ const Contact = () => {
                             required
                           />
                         </div>
-                        <Button 
-                          type="submit" 
-                          variant="hero" 
-                          size="lg" 
+                        <Button
+                          type="submit"
+                          variant="hero"
+                          size="lg"
                           className="w-full"
                           disabled={isSubmitting}
                         >
                           <Send className="mr-2 h-4 w-4" />
-                          {isSubmitting ? 'Sending...' : 'Send Message'}
+                          {isSubmitting ? "Sending..." : "Send Message"}
                         </Button>
                       </form>
                     </CardContent>

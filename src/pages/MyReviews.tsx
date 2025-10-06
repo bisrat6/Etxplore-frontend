@@ -16,7 +16,7 @@ import {
   Save,
   X,
 } from "lucide-react";
-import { reviewsAPI } from "@/lib/api";
+import { reviewsAPI, toursAPI } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
@@ -59,19 +59,33 @@ const MyReviews = () => {
         [];
       const arr = Array.isArray(docs) ? docs : [];
       // If user is admin, show all reviews. Otherwise filter by current user id.
-      if (user?.role === "admin") {
-        setReviews(arr);
-      } else if (user) {
+      let target = arr;
+      if (user?.role !== "admin") {
         const currentUserId = (user as any)?._id ?? (user as any)?.id;
-        const filtered = arr.filter((r: any) => {
+        target = arr.filter((r: any) => {
           const rid = r.user?._id ?? r.user?.id ?? r.user;
           return String(rid) === String(currentUserId);
         });
-        setReviews(filtered);
-      } else {
-        // user not available yet; set empty and let effect rerun when user appears
-        setReviews([]);
       }
+
+      // Enrich reviews to ensure tour has a real name
+      const enriched = await Promise.all(
+        target.map(async (r: any) => {
+          const t = r.tour;
+          // If populated with name, keep as is
+          if (t && typeof t === 'object' && t.name) return r;
+          const tourId = typeof t === 'string' ? t : (t?._id ?? t?.id);
+          if (!tourId) return r;
+          try {
+            const tr = await toursAPI.getById(String(tourId));
+            return { ...r, tour: tr.data.data };
+          } catch {
+            return r;
+          }
+        })
+      );
+
+      setReviews(enriched);
     } catch (err: any) {
       console.error("Failed to fetch reviews:", err);
       setError(err.response?.data?.message || "Failed to load reviews");

@@ -15,35 +15,18 @@ const Home = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navigation />
-      
+
       <Hero />
 
       <FeaturedSection />
 
-      {/* Featured Tours */}
-      <section className="py-24">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16 animate-fade-in">
-            <h2 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
-              Popular <span className="text-primary">Adventures</span>
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-              Hand-picked tours that showcase the very best of Ethiopia's natural wonders and cultural treasures.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-            {featuredTours.map((tour) => (
-              <TourCard key={tour.id} tour={tour} />
-            ))}
-          </div>
-
-          <div className="text-center">
-            <Button asChild variant="adventure" size="xl" className="group">
-              <Link to="/tours">
-                View All Tours
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </Link>
+      {/* Compact CTA to view all tours (tours grid removed) */}
+      <section className="py-16">
+        <div className="container mx-auto px-4 text-center">
+          <h3 className="text-2xl font-semibold mb-4">Looking for tours?</h3>
+          <div className="flex justify-center">
+            <Button asChild variant="adventure" size="lg">
+              <Link to="/tours">View All Tours</Link>
             </Button>
           </div>
         </div>
@@ -57,7 +40,8 @@ const Home = () => {
               Traveler <span className="text-primary">Stories</span>
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Hear what our adventurers have to say about their unforgettable Ethiopian experiences.
+              Hear what our adventurers have to say about their unforgettable
+              Ethiopian experiences.
             </p>
           </div>
 
@@ -67,36 +51,42 @@ const Home = () => {
                 name: "Sarah Johnson",
                 location: "United States",
                 text: "The Simien Mountains trek was absolutely breathtaking. Our guide was knowledgeable and the landscapes were unlike anything I've ever seen!",
-                rating: 5
+                rating: 5,
               },
               {
                 name: "James Chen",
                 location: "Singapore",
                 text: "Visiting Lalibela's rock churches was a spiritual experience. The history and craftsmanship are incredible. Etxplore made everything seamless.",
-                rating: 5
+                rating: 5,
               },
               {
                 name: "Emma Wilson",
                 location: "United Kingdom",
                 text: "An adventure of a lifetime! From the Danakil Depression to the coffee ceremonies, every moment was magical. Highly recommend!",
-                rating: 5
-              }
+                rating: 5,
+              },
             ].map((testimonial, index) => (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 className="bg-card p-8 rounded-xl shadow-lg border-2 hover:border-primary/20 transition-all hover-lift"
               >
                 <div className="flex gap-1 mb-4">
                   {[...Array(testimonial.rating)].map((_, i) => (
-                    <span key={i} className="text-secondary text-xl">★</span>
+                    <span key={i} className="text-secondary text-xl">
+                      ★
+                    </span>
                   ))}
                 </div>
                 <p className="text-muted-foreground mb-6 leading-relaxed">
                   "{testimonial.text}"
                 </p>
                 <div>
-                  <p className="font-bold text-foreground">{testimonial.name}</p>
-                  <p className="text-sm text-muted-foreground">{testimonial.location}</p>
+                  <p className="font-bold text-foreground">
+                    {testimonial.name}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {testimonial.location}
+                  </p>
                 </div>
               </div>
             ))}
