@@ -66,8 +66,12 @@ const TourDetail = () => {
         } catch (err: any) {
           // Check if it's a 401 error (authentication required)
           if (err.response?.status === 401) {
+            toast({
+              title: "Authentication Required",
+              description: "Please login to view tour details",
+              variant: "destructive",
+            });
             // Let the axios interceptor handle the redirect to login
-            // Don't show toast, just redirect
             return;
           }
           
@@ -143,6 +147,11 @@ const TourDetail = () => {
     } catch (err: any) {
       // Check if it's a 401 error (authentication required)
       if (err.response?.status === 401) {
+        toast({
+          title: "Authentication Required",
+          description: "Please login to view tour details",
+          variant: "destructive",
+        });
         // Let the axios interceptor handle the redirect to login
         return;
       }
