@@ -22,6 +22,7 @@ import { toursAPI, reviewsAPI } from "@/lib/api";
 import { bookingsAPI } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { getAssetUrl } from "@/lib/utils";
 
 const TourDetail = () => {
   const { id } = useParams();
@@ -254,7 +255,7 @@ const TourDetail = () => {
             className="w-full h-full bg-center bg-cover"
             style={{
               backgroundImage: `url(${
-                tour.imageCover ||
+                getAssetUrl(tour.imageCover || tour.images?.[0]) ||
                 `https://placehold.co/1200x800/2d5a3d/ffd700?text=${encodeURIComponent(
                   tour.name
                 )}`
@@ -437,13 +438,18 @@ const TourDetail = () => {
                       >
                         <img
                           src={
-                            image ||
+                            getAssetUrl(image) ||
                             `https://placehold.co/400x400/2d5a3d/ffd700?text=Image+${
                               index + 1
                             }`
                           }
                           alt={`${tour.name} ${index + 1}`}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLImageElement).src = `https://placehold.co/400x400/2d5a3d/ffd700?text=Image+${
+                              index + 1
+                            }`;
+                          }}
                         />
                       </div>
                     )) || (
@@ -534,9 +540,9 @@ const TourDetail = () => {
                     </Card>
                   ) : (
                     <div className="space-y-4">
-                      {reviews.map((review) => (
+                      {reviews.map((review: any) => (
                         <Card
-                          key={review._id ?? review.id}
+                          key={review._id ?? review.id ?? Math.random()}
                           className="border-2"
                         >
                           <CardContent className="p-6">
@@ -546,17 +552,17 @@ const TourDetail = () => {
                                   {review.user?.name || "Anonymous"}
                                 </h4>
                                 <div className="flex items-center gap-2 mt-1">
-                                  {renderStars(review.rating)}
+                                  {renderStars(review.rating || 0)}
                                   <span className="text-sm text-muted-foreground">
                                     {new Date(
-                                      review.createdAt
+                                      review.createdAt || Date.now()
                                     ).toLocaleDateString()}
                                   </span>
                                 </div>
                               </div>
                             </div>
                             <p className="text-muted-foreground">
-                              {review.review}
+                              {review.review || ""}
                             </p>
                           </CardContent>
                         </Card>
@@ -638,13 +644,19 @@ const TourDetail = () => {
                       <div className="mb-6">
                         <h4 className="text-lg font-semibold mb-3">Guides</h4>
                         <div className="space-y-2">
-                          {tour.guides.map((g: any) => (
+                          {tour.guides.map((g: any) => {
+                            // Use a seed based on the guide's ID for consistent random male avatar
+                            const seed = (g._id || g.id || g.name || "").split("").reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
+                            const imgNumber = (seed % 70) + 1;
+                            const avatarUrl = `https://i.pravatar.cc/100?img=${imgNumber}`;
+                            
+                            return (
                             <div
                               key={g._id ?? g.id}
                               className="flex items-center gap-3"
                             >
                               <img
-                                src={g.photo || "/placeholder-user.png"}
+                                src={avatarUrl}
                                 alt={g.name}
                                 className="w-10 h-10 rounded-full object-cover"
                               />
@@ -655,7 +667,8 @@ const TourDetail = () => {
                                 </div>
                               </div>
                             </div>
-                          ))}
+                          );
+                          })}
                         </div>
                       </div>
                     )}

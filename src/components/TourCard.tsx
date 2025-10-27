@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar, Users, TrendingUp, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { getAssetUrl } from "@/lib/utils";
 
 interface TourCardProps {
   tour: {
@@ -39,13 +40,23 @@ const TourCard = ({ tour }: TourCardProps) => {
         {/* Tour Image */}
         <div className="relative h-56 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-primary/80 z-10" />
-          <img
-            src={`https://placehold.co/600x400/2d5a3d/ffd700?text=${encodeURIComponent(
+          {(() => {
+            const coverName = (tour as any).imageCover || (tour as any).images?.[0];
+            const coverUrl = getAssetUrl(coverName);
+            const fallback = `https://placehold.co/600x400/2d5a3d/ffd700?text=${encodeURIComponent(
               tour.name
-            )}`}
-            alt={tour.name}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-          />
+            )}`;
+            return (
+              <img
+                src={coverUrl || fallback}
+                alt={tour.name}
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = fallback;
+                }}
+              />
+            );
+          })()}
           <Badge
             className={`absolute top-4 right-4 z-20 ${
               difficultyColors[tour.difficulty as keyof typeof difficultyColors]

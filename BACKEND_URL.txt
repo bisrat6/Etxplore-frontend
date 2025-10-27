@@ -1,0 +1,28 @@
+# Your Backend URL for Frontend Deployment
+
+Backend URL: https://web-production-ad768.up.railway.app
+
+API Base URL: https://web-production-ad768.up.railway.app/api/v1
+
+---
+
+## When Deploying to Vercel
+
+Add this environment variable in Vercel:
+
+Variable Name: VITE_API_BASE_URL
+Variable Value: https://web-production-ad768.up.railway.app/api/v1
+
+---
+
+## Update Backend CORS (IMPORTANT!)
+
+Go to Railway → Your Backend Service → Variables
+
+Add or update:
+
+Variable Name: FRONTEND_URL
+Variable Value: https://your-frontend.vercel.app
+
+(Update this after deploying to Vercel!)
+
