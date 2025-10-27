@@ -63,7 +63,14 @@ const TourDetail = () => {
             dates[0] ||
             null;
           setSelectedStartDate(next);
-        } catch (err: unknown) {
+        } catch (err: any) {
+          // Check if it's a 401 error (authentication required)
+          if (err.response?.status === 401) {
+            // Let the axios interceptor handle the redirect to login
+            // Don't show toast, just redirect
+            return;
+          }
+          
           console.error("Failed to fetch tour:", err);
           toast({
             title: "Error",
@@ -133,7 +140,13 @@ const TourDetail = () => {
       } else {
         setHasUserReviewed(false);
       }
-    } catch (err: unknown) {
+    } catch (err: any) {
+      // Check if it's a 401 error (authentication required)
+      if (err.response?.status === 401) {
+        // Let the axios interceptor handle the redirect to login
+        return;
+      }
+      
       console.error("Failed to fetch reviews:", err);
       toast({
         title: "Error",
