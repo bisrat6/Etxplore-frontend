@@ -67,7 +67,7 @@ const Signup = () => {
       toast({
         title: "Account created!",
         description:
-          "Check your email for a verification link before logging in",
+          "Account created successfully. Please login to continue",
       });
       // do not auto-login; show message and stay on signup or redirect to login
       navigate("/login");
