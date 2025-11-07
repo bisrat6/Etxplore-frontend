@@ -49,8 +49,8 @@ const Contact = () => {
     }
 
     const templateParams = {
-      from_name: name,
-      from_email: email,
+      user_name: name,
+      user_email: email,
       subject,
       message,
     };
